@@ -1,0 +1,425 @@
+---
+title: 'Project 4:  Red Wine Analysis'
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
+```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
+# parameter "echo" is set to FALSE to prevent this code from displaying the knitted HTML
+library(ggplot2)
+library(GGally)
+library(RColorBrewer)
+library(reshape)
+library(gridExtra)
+```
+
+```{r echo=FALSE, Load_the_Data}
+# Load Data
+wine <- read.csv("wineQualityReds.csv")
+```
+
+#Introduction
+The analysis that follows is based on the following dataset:
+  P. Cortez, A. Cerdeira, F. Almeida, T. Matos and J. Reis. 
+  Modeling wine preferences by data mining from physicochemical properties.
+  In Decision Support Systems, Elsevier, 47(4):547-553. ISSN: 0167-9236.
+
+## An overview of the data
+Following are the variables included in the Red Wine dataset:
+```{r echo=FALSE}
+names(wine)
+```
+where variables are of type:
+```{r echo=FALSE}
+str(wine)
+```
+
+Thus it looks like X variable is just an index.
+
+Now Let's look at the variability in the variables:
+```{r echo=FALSE}
+summary(wine[2:13])
+```
+
+We can also visualize the variability of each variable by plotting a boxplot for each:  
+
+<br>
+```{r echo=FALSE}  
+#we use the reshape library to melt the wide data and then visualize the data distribution for each variable using boxplots.  We can exclude the first column from the dataframe since it is an index
+meltData <- melt(wine[2:13])  
+  
+ggplot(meltData, aes(factor(variable), value))+ geom_boxplot() + facet_wrap(~variable, scale="free")  
+cat("\n ")
+```  
+<br>
+  
+The upper and lower whiskers extend to the highest and lowest point whithin 1.5* the inter-quartile range.
+
+We can also plot histograms for each variable to help us understand the distribution of each variable:  
+<br>
+```{r echo=FALSE}
+ggplot(meltData, aes(x = value)) + facet_wrap(~variable,scales = "free_x") + geom_histogram()
+cat("\n ")
+```  
+<br>
+  
+Many of the variables look normally distributed.  Alcohol, sulphates and total sulfur dioxide look like they have lognormal distributions.  The outliers for the residual sugar and chlorides variables make it difficult to see the distribution.  Let's exclude the 95th percentile for residual sugar and chlorides and re-plot their histograms:  
+<br>
+```{r echo=FALSE}
+#calculating the quantile
+#quantile(wine$residual.sugar, c(0.99))
+
+p1 <- ggplot(wine, aes(x = volatile.acidity)) +
+  geom_histogram(binwidth = 0.01) +
+  labs(y = 'Volatile Acidity (g/L)', x = 'Count',
+          title = "Volatile acidity distribution") 
+
+p2 <- ggplot(wine, aes(y = volatile.acidity, x = 1)) +
+  geom_boxplot(color = 'blue') +
+  geom_jitter(aes(x = 1, y = volatile.acidity), alpha = 0.3) +
+  labs(y = 'Volatile Acidity (g/L)', x = '',
+          title = "Volatile acidity distribution") +
+  coord_flip()
+grid.arrange(p1, p2, ncol=2)
+cat("\n ")
+```  
+<br>  
+
+The distributions for residual sugar and chlorides also look normal when we exclude the outliers.
+
+Here are the summary statistics for residual sugar:
+<br>
+```{r echo=FALSE}
+summary(wine$residual.sugar)
+```
+
+And chlorides:
+<br>
+```{r echo=FALSE}
+summary(wine$chlorides)
+```
+
+What we are most interested in is the quality rating and what variables influence the quality rating.  Let's take a look at the red wine quality ratings using a histogram.  
+<br>
+```{r echo=FALSE}
+ggplot(wine, aes(x=quality)) + geom_bar()
+summary(wine$quality)
+cat("\n ")
+```  
+<br>
+  
+The vast majority of red wines have a quality ranking of 5 and 6.
+
+The alcohol content can be another important consideration when we are purchasing wine:  
+<br>
+```{r echo=FALSE}
+ggplot(wine, aes(x=alcohol)) + 
+  geom_density()
+summary(wine$alcohol)
+cat("\n ")
+```  
+<br>
+
+It looks like the alcohol content of the wine in the dataset follows a lognormal distribution with a high peak at the lower end of the alcohol scale.
+
+##Bivariate relationships
+We can quickly visualize the relationship between each pair of variables and find their pearson product-moment correlation. The names along the x and y axis of the plot matrix below are as follows:  
+<br>
+```{r echo=FALSE}
+names(wine)[2:13]
+```
+<br>  
+```{r echo=FALSE}
+#ggpairs(wine, columns = c(2:13), columnLabels = c("f.acidity", "v.acidity", "c.acid", "res.sugar", "chlorides", "free.SO2", "total.SO2", "density", "pH", "sulphates", "alcohol","quality")) + theme(axis.title.y = element_text(size = 8))
+
+ggscatmat(wine, columns = 2:13) + theme_grey(base_size=7)
+cat("\n ")
+```  
+<br>
+  
+The top 4 correlation coefficients with quality are:
+
+* alchol:quality = 0.48
+* sulphates:quality = 0.25
+* citric.acid:quality = 0.23
+* fixed.acidity:quality = 0.12
+
+So as we saw earlier, alcohol content has a high correlation with red wine quality.  Other important attributes correlated with red wine quality include sulphates, citric acid and fixed acidity.  According to [wikipedia](http://en.wikipedia.org/wiki/Acids_in_wine), most of the acids involved with wine making are fixed acids except of acetic acid which is volatile and contributes to "a wine fault known as volatility".
+
+The biggest negative corrlation coefficients with quality are:
+
+* volatile.acidity:quality = -0.39
+* total.sulfur.dioxide:quality = -0.19
+* density:quality = -0.17
+* chlorides:quality = -0.13
+
+So we see that volatile acids are negatively correlated with red wine quality.  Tota sulfur dioxide, density and chlorides are also negatively correlated with quality. 
+
+Variables with the highest (positive or negative) correlation include:
+
+* fixed.acidity:citirc.acid = 0.67
+* fixed.acidity:density = 0.67
+* free.sulfur.dioxide:total.sulfur.dioxide = 0.67
+* alcohol:quality = 0.48
+* density:alcohol = -0.50
+* citric.acid:pH = -0.54
+* volatile.acidity:citirc.acid = -0.55
+* fixed.acidity:pH = -0.68
+
+Let's look at a few of these relationships in a bit more detail.  Density and alcohol:  
+<br>
+```{r echo=FALSE}
+ggplot(wine, aes(density, alcohol)) + 
+  geom_jitter(alpha=0.2) + 
+  stat_smooth(method = "lm", formula = y ~ x)
+cat("\n ")
+```  
+<br>
+  
+We see that density tends to increase with decreasing alcohol content.
+
+Fixed acidity and pH:  
+<br>
+```{r echo=FALSE}
+ggplot(wine, aes(fixed.acidity, pH)) + 
+  geom_jitter(alpha=0.2) + 
+  stat_smooth(method = "lm", formula = y ~ x)
+cat("\n ")
+```  
+<br>
+  
+We also see fixed acidity increase as pH decreases.
+
+Fixed acidity and density:  
+<br>
+```{r echo=FALSE}
+ggplot(wine, aes(fixed.acidity, density)) + 
+  geom_point(alpha=0.2) +  
+  stat_smooth(method = "lm", formula = y ~ x)
+cat("\n ")
+```  
+<br>
+  
+On the other hand fixed acidity increases with density.
+
+Now let's look at the alcohol content by red wine quality using a density plot function:  
+<br>
+```{r echo=FALSE}
+#I tried running the plot below but there was an error, likely because quality is an int, not a factor so I made quality a factor
+ggplot(wine, aes(x=alcohol, fill=factor(quality))) + geom_density(alpha=0.2) + scale_color_brewer(type='seq', palette = 'GnBu')
+cat("\n ")
+```  
+<br>
+  
+It looks like the red wines with a higher alcohol content tend to have a higher quality rating...what a surprise!  The main anomoly to this trend appears to be red wines having a quality ranking of 5.
+
+Here are the summary statistics for alcohol content at each quality level:  
+<br>
+```{r echo=FALSE}
+by(wine$alcohol, factor(wine$quality), summary)
+cat("\n ")
+```  
+<br>
+  
+```{r echo=FALSE}
+ggplot(wine, aes(x=sulphates, fill=factor(quality))) + 
+  geom_density(alpha=0.2)
+cat("\n ")
+```  
+<br>
+  
+It looks like sulphate content is quite important for red wine quality, particularly for the highest quality levels including quality 7 and 8.
+
+And here are the summary statistics for sulphates at each quality level:  
+<br>
+```{r echo=FALSE}
+tapply(wine$sulphates, factor(wine$quality), summary)
+cat("\n ")
+```  
+<br>
+  
+## Multivariate Plots
+Now let's visualize the relationship between sulphates, volatile.acidity, alcohol and quality:  
+<br>
+```{r echo=FALSE}
+ggplot(wine, aes(x=volatile.acidity, y=sulphates, size = alcohol, 
+                 color=factor(quality))) + 
+  geom_point() + 
+  scale_color_brewer()
+cat("\n ")
+```  
+<br>
+  
+It looks like the higher quality red wines tend to be concentrated in the top left of the plot.  This tends to be where the higher alcohol content (larger dots) are concentrated as well.
+
+
+Let's try summarizing quality using a contour plot of alcohol and sulphate content:  
+<br>
+```{r echo=FALSE}
+ggplot(wine, aes(x = sulphates, y = alcohol, 
+                 colour=factor(wine$quality))) + 
+  geom_density2d(bins=2) + 
+  scale_color_brewer() + 
+  geom_point(color="black", alpha=0.1) 
+cat("\n ")
+```  
+<br>
+
+This shows that higher quality red wines are generally located near the upper right of the scatter plot (darker contour lines) wheras lower quality red wines are generally located in the bottom right.
+
+Let's make a similar plot but this time quality will be visualized using density plots along the x and y axis and color :  
+<br>
+```{r echo=FALSE}
+empty <- ggplot()+geom_point(aes(1,1), colour="white") +
+     theme(                              
+       plot.background = element_blank(), 
+       panel.grid.major = element_blank(), 
+       panel.grid.minor = element_blank(), 
+       panel.border = element_blank(), 
+       panel.background = element_blank(),
+       axis.title.x = element_blank(),
+       axis.title.y = element_blank(),
+       axis.text.x = element_blank(),
+       axis.text.y = element_blank(),
+       axis.ticks = element_blank()
+     )
+
+main <- ggplot(wine, aes(x = sulphates, y = alcohol, 
+                 color=factor(wine$quality))) + 
+  geom_point() +
+  theme(legend.position=c(1,1),legend.justification=c(1,1))
+
+top <- ggplot(wine, aes(x = sulphates, 
+                 fill=factor(wine$quality))) + 
+  geom_density(alpha=0.5) + 
+  theme(legend.position = "none")
+  
+right <- ggplot(wine, aes(x = alcohol, 
+                 fill=factor(wine$quality))) + 
+  coord_flip() + 
+  geom_density(alpha=0.5) + 
+  theme(legend.position = "none")
+  
+grid.arrange(top, empty, main, right, ncol=2, nrow=2, widths=c(4, 1), heights=c(1, 4))
+cat("\n ")
+```  
+<br>
+  
+Again, this clearly illustrates that higher quality wines are found near the top right of the plot.
+
+
+#Final Plots & Summary
+
+The strongest correlation coefficient was found between alcohol and quality.  
+<br>
+```{r echo=FALSE}
+colours = brewer.pal(name="RdBu", n=nlevels(factor(wine$quality)))
+names(colours) = rev(levels(factor(wine$quality)))
+
+ggplot(wine, aes(x=alcohol, fill=factor(quality))) + 
+  geom_density(alpha=0.2) + 
+  scale_fill_manual(values=colours) + 
+  labs(title="Density plot of alcohol content 
+       by red wine quality ratings", 
+       x="alcohol (% by volume)") + 
+  theme(plot.title = element_text(size = 14))
+cat("\n ")
+```  
+<br>
+  
+We can see that the density plots for higher quality red wines (as indicated by the red plots) are right shifted, meaning they have a comparatively high alcohol content. However, the main anomaly to this trend appears to be red wines having a quality ranking of 5.
+
+Here are the summary statistics for alcohol content at each quality level:  
+<br>
+```{r echo=FALSE}
+by(wine$alcohol, wine$quality, summary)
+cat("\n ")
+```  
+<br>
+  
+Sulphates were found to also found to be correlated with red wine quality (R^2= 0.25) while volatile acid had a negative correlation (R^2=-0.39).  We can visualize the relationships betwen these two variables, along with alcohol content and red wine quality using a scatter plot:  
+<br>
+```{r echo=FALSE}
+#implemented using scale_fill_brewer
+#ggplot(wine, aes(x=volatile.acidity, y=sulphates, size = alcohol, 
+#                 fill=factor(quality))) + 
+#  geom_point(shape=21) + 
+#  scale_fill_brewer(type="div", palette=7)
+
+#reversing color ordering used to identify red wine quality
+colours = brewer.pal(name="RdBu", n=nlevels(factor(wine$quality)))
+names(colours) = rev(levels(factor(wine$quality)))
+
+ggplot(wine, aes(x=volatile.acidity, y=sulphates, size = alcohol, 
+                 fill=factor(quality))) + 
+  geom_point(shape=21) + 
+  scale_fill_manual(values=colours) + 
+  labs(title="Influences of alcohol content, sulphates,\
+       and volatile.acidity on red wine quality", 
+       x="volatile acidity (acetic acid - g / dm^3)", 
+       y="sulphates (potassium sulphate - g / dm3)") + 
+  theme(plot.title = element_text(size = 14))
+cat("\n ")
+```  
+<br>
+  
+We see a clear trend where higher quality red wines (red dots), are concentrated in the upper right of the figure, while their also tends to be larger dots concentrated in this area.
+
+We can also visualize the relationship between alcohol content and sulphates by combining scatter plots with density plots:  
+<br>
+```{r echo=FALSE}
+empty <- ggplot()+geom_point(aes(1,1), colour="white") +
+     theme(                              
+       plot.background = element_blank(), 
+       panel.grid.major = element_blank(), 
+       panel.grid.minor = element_blank(), 
+       panel.border = element_blank(), 
+       panel.background = element_blank(),
+       axis.title.x = element_blank(),
+       axis.title.y = element_blank(),
+       axis.text.x = element_blank(),
+       axis.text.y = element_blank(),
+       axis.ticks = element_blank()
+     )
+
+main <- ggplot(wine, aes(x = sulphates, y = alcohol, 
+                 fill=factor(wine$quality))) + 
+  geom_point(shape=21) +
+  scale_fill_manual(values=colours) +
+  theme(legend.position=c(1,1),legend.justification=c(1,1)) + 
+  labs(fill="Quality", 
+       title="Influence of alcohol and sulphate 
+       content on red wine quality", 
+       y="alcohol content (% by volume)", 
+       x= "sulphates (potassium sulphate - g / dm3)")
+  
+
+top <- ggplot(wine, aes(x = sulphates, 
+                 fill=factor(wine$quality))) + 
+  geom_density(alpha=0.5) + 
+  scale_fill_manual(values=colours) +
+  theme(legend.position = "none")
+  
+right <- ggplot(wine, aes(x = alcohol, 
+                 fill=factor(wine$quality))) + 
+  coord_flip() + 
+  geom_density(alpha=0.5) + 
+  scale_fill_manual(values=colours) +
+  theme(legend.position = "none")
+  
+grid.arrange(top, empty, main, right, ncol=2, nrow=2, widths=c(4, 1), heights=c(1, 4))
+cat("\n ")
+```  
+<br>
+  
+By combining a scatter plot with density plots of the x- and y-axis variables it is easier to see that a trend from low to high quality moving from the bottom left of the scatter plot that is blue to the top left of the scatter plot which is red, but we can density plots on each axis help illustrate the rather distinct ranges that are occupied for different quality wines for both alcohol content and sulphate content. 
+
+#Reflection
+My major worry was to wrangle a dataset in to a tidy datset. Thus I chose one of the recommended datasets.
+
+The above analysis considered the relationship of a number of red wine attributes with the quality rankings of different wines.  Melting the dataframe and using facet grids was really helpful for visualizing the distribution of each of the features with the use of boxplots and histograms.  Most of the features were found to be normally distributed while citirc acid, free sulfur dioxide and total sulfur dioxide and alcohol had more of a lognormal distribution.
+
+GGally provides a concise summary of the pairwise relationships in the dataset.
+
+It was usefull to use the insights from correlation coefficients provided by the paired plots to explore quality using density plots with a different color for each quality. It helped tp make multivariate scatter plots to visualize the relationship of different variables with quality next I think we should develop a statistical model to predict red wine quality based on the data in this dataset.
