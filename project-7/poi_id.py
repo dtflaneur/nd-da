@@ -140,7 +140,7 @@ features = sel.fit_transform(features)
 
 #Removes all but the k highest scoring features
 from sklearn.feature_selection import f_classif
-k = 7
+k = 6
 selector = SelectKBest(f_classif, k=7)
 selector.fit_transform(features, labels)
 print("Best features:")
