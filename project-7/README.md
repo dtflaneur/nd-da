@@ -199,13 +199,13 @@ I used accuracy, precision, and recall. The average performance for each is as b
 
 
 Accuracy shows how close a predicted value is to the actual value. 
-An accuracy of 0.855 means that the proportion of true results (both true positives and true negatives) is 0.855 among the total number of cases.
+An accuracy of 0.858 means that the proportion of true results (both true positives and true negatives) is 0.858 among the total number of cases.
 
 Precision measures an algorithm's power to classify true positives from all cases that are classified as positives. 
-Precision of 0.433 denotes that among the total 100 persons classified as POIs, 43 persons are actually POIs. 
+Precision of 0.457 denotes that among the total 100 persons classified as POIs, 45 persons are actually POIs. 
 
 Recall is a metric that measures an algorithm's power to classify true positives over all cases that are actually positives. 
-Recall of 0.373 means that among 100 true POIs existing in the dataset, 37 POIs are correctly classified as POIs
+Recall of 0.379 means that among 100 true POIs existing in the dataset, 37 POIs are correctly classified as POIs
 
 ### References:
 - [Introduction to Machine Learning (Udacity)](https://www.udacity.com/course/viewer#!/c-ud120-nd)
