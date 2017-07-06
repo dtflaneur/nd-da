@@ -150,7 +150,9 @@ Evaluating naive bayes model using dataset with new features
 __Question 3: *What algorithm did you end up using? What other one(s) did you try? How did model performance differ between algorithms? [relevant rubric item: “pick an algorithm”]*__
 
 
-I tried 4 algorithms: naive bayes, k-mean, logistic regression and svm. Naive bayes turned out to give best performance; it performed well in both the test set and the final set while the K-means model only performed well in the test set and failed in the final set
+I tried 5 algorithms: naive bayes, k-mean, logistic regression, svm and  random forrest. Naive bayes turned out to give best performance;
+
+But after feedback I found the precision was'nt coming moe than the required benchmark, Logistic regression gave the required reults thus I kept Logistic rregression as final algorith
 
 | Algorithm				| Accuracy	| Precision	| Recall	| Best Param |
 | :---------------------|-----------|-----------|-----------|-----------: |
