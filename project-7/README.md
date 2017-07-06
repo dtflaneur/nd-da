@@ -126,31 +126,10 @@ Evaluating naive bayes model using dataset with new features
 	precision: 0.438571428571
 	recall:    0.361572150072
 
-k=4
-Evaluating naive bayes model
-	accuracy: 0.847692307692
-	precision: 0.445119047619
-	recall:    0.278857142857
-Evaluating naive bayes model using dataset with new features
-	accuracy: 0.83925
-	precision: 0.413759462759
-	recall:    0.305626984127
-
-k=3
-Evaluating naive bayes model
-	accuracy: 0.839487179487
-	precision: 0.458243506494
-	recall:    0.297996031746
-Evaluating naive bayes model using dataset with new features
-	accuracy: 0.841282051282
-	precision: 0.442833333333
-	recall:    0.321083333333
-
-
 __Question 3: *What algorithm did you end up using? What other one(s) did you try? How did model performance differ between algorithms? [relevant rubric item: “pick an algorithm”]*__
 
 
-I tried 5 algorithms: naive bayes, k-mean, logistic regression, svm and  random forrest. Logistic regression gave the required results thus I kept Logistic rregression as final algorithm
+I tried 5 algorithms: naive bayes, k-mean, logistic regression, svm and  random forrest. I found Naive bayes to give good results. But it wasn't giving expected results on test data. **Logistic regression gave the required results thus I kept Logistic rregression as final algorithm**
 
 | Algorithm				| Accuracy	| Precision	| Recall	| Best Param |
 | :---------------------|-----------|-----------|-----------|-----------: |
