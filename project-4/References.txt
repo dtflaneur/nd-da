@@ -1,0 +1,4 @@
+References:
+
+1. https://wiki.openstreetmap.org/wiki/OSM_XML
+2. https://docs.mongodb.org/manual/reference/program/mongoimport/>
